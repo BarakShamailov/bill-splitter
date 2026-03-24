@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill Splitter Pro 💰</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-bg"></div>
+            <div class="header-content">
+                <div class="logo">💰</div>
+                <h1>Bill Splitter Pro</h1>
+                <p class="subtitle">חלוקת חשבון חכמה • פשוט ומדויק</p>
+                <div class="header-tags">
+                    <span class="tag">🧮 חישוב אוטומטי</span>
+                    <span class="tag">💑 תמיכה בזוגות</span>
+                    <span class="tag">📦 קטגוריות</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Step 1: People -->
+            <section class="card step-card" id="step1">
+                <div class="card-header">
+                    <div class="step-badge">1</div>
+                    <h2>👥 המשתתפים
+                        <span class="count-badge"
+                              id="personsCount">0</span>
+                    </h2>
+                    <button class="btn btn-example"
+                            onclick="loadExample()">
+                        📋 טען דוגמה
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="personName">שם</label>
+                            <input type="text" id="personName"
+                                   placeholder="הכנס שם...">
+                        </div>
+                        <div class="input-group">
+                            <label for="coupleGroup">
+                                זוג / קבוצה
+                                <span class="optional">(אופציונלי)</span>
+                            </label>
+                            <input type="text" id="coupleGroup"
+                                   placeholder="שם הזוג...">
+                        </div>
+                        <button class="btn btn-primary"
+                                onclick="addPerson()">
+                            ➕ הוסף
+                        </button>
+                    </div>
+                    <div id="personsList"></div>
+                </div>
+            </section>
+
+            <!-- Step 2: Categories -->
+            <section class="card step-card" id="step2">
+                <div class="card-header">
+                    <div class="step-badge">2</div>
+                    <h2>📦 קטגוריות הוצאה</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-row">
+                        <div class="input-group" style="flex:2">
+                            <label for="categoryName">שם הקטגוריה</label>
+                            <input type="text" id="categoryName"
+                                   placeholder='לדוגמה: פיצות 🍕'>
+                        </div>
+                        <button class="btn btn-primary"
+                                onclick="addCategory()">
+                            ➕ הוסף קטגוריה
+                        </button>
+                    </div>
+                    <div id="categoriesList"></div>
+                </div>
+            </section>
+
+            <!-- Calculate -->
+            <div class="calculate-section">
+                <button class="btn btn-calculate"
+                        onclick="calculate()">
+                    🧮 חשב חלוקה
+                </button>
+            </div>
+
+            <!-- Results -->
+            <section class="card results-card" id="resultsCard"
+                     style="display:none;">
+                <div class="card-header results-header">
+                    <h2>📊 תוצאות</h2>
+                </div>
+                <div class="card-body" id="resultsBody"></div>
+            </section>
+        </main>
+
+        <footer class="app-footer">
+            <p>💰 Bill Splitter Pro — חלוקת חשבון חכמה</p>
+            <p class="footer-sub">
+                רץ 100% בדפדפן • ללא שרת • הנתונים לא נשמרים
+            </p>
+        </footer>
+    </div>
+
+    <script src="calculator.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
