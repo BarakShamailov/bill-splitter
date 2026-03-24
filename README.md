@@ -1,16 +1,5 @@
----
-title: Bill Splitter Pro
-emoji: 💰
-colorFrom: purple
-colorTo: green
-sdk: static
-pinned: false
-license: mit
----
 
-<div align="center">
-
-# 💰 Bill Splitter Pro
+# 💰 Bill Splitter 
 
 ### Smart Bill Splitting Made Simple
 
@@ -38,8 +27,7 @@ You went out with 12 friends. Pizza was ordered for everyone, but only 8 people 
 
 ### 💡 The Solution
 
-Bill Splitter Pro handles all the complexity:
-
+Bill Splitter handles all the complexity:
 
 ---
 
@@ -65,7 +53,7 @@ Bill Splitter Pro handles all the complexity:
 
 ## 🚀 Live Demo
 
-### **[👉 Launch Bill Splitter Pro](https://barakshamailov.github.io/bill-splitter-pro)**
+### **[👉 Launch Bill Splitter Pro](https://barakshamailov.github.io/bill-splitter)**
 
 > Click **"📋 Load Example"** to see it in action with sample data!
 
