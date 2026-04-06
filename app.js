@@ -483,7 +483,7 @@ function copyResults() {
         text += `הכל מאוזן! 🎉\n`;
     } else {
         data.transfers.forEach((t, i) => {
-            text += `${i + 1}. ${t.from} → ${t.to}: ₪${t.amount.toFixed(2)}\n`;
+            text += `${i + 1}. ${t.from} ← ${t.to}: ₪${t.amount.toFixed(2)}\n`;
         });
     }
 
