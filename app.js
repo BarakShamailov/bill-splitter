@@ -402,18 +402,22 @@ function renderPersons() {
     for (const [groupName, members] of Object.entries(groups)) {
         html += `
             <div class="people-group">
-                <p class="group-label">
-                    ${icon('users')}
-                    <bdi>${esc(groupName)}</bdi>
-                    <span>· מתקזזים ביניהם</span>
-                </p>
+                <div class="group-head">
+                    <span class="group-badge">${icon('users')}<bdi>${esc(groupName)}</bdi></span>
+                    <span class="group-meta">${plural(members.length, 'אדם אחד', 'אנשים')} · מתקזזים ביניהם</span>
+                </div>
                 <ul class="person-grid">${members.map(personRowHtml).join('')}</ul>
             </div>`;
     }
     if (singles.length) {
+        const hasGroups = Object.keys(groups).length > 0;
         html += `
-            <div class="people-group">
-                ${Object.keys(groups).length ? `<p class="group-label">${icon('user')}בלי קבוצה</p>` : ''}
+            <div class="people-group ${hasGroups ? 'solo' : ''}">
+                ${hasGroups ? `
+                <div class="group-head">
+                    <span class="group-badge solo">${icon('user')}<bdi>ללא קבוצה</bdi></span>
+                    <span class="group-meta">${plural(singles.length, 'אדם אחד', 'אנשים')} · מתחשבנים לבד</span>
+                </div>` : ''}
                 <ul class="person-grid">${singles.map(personRowHtml).join('')}</ul>
             </div>`;
     }
@@ -772,12 +776,12 @@ function transferItem(t, ent) {
         <li class="transfer">
             <span class="t-person">
                 ${entityAvatar(t.from, ent)}
-                <span><span class="t-role">מעביר</span><span class="t-name">${nameHtml(ent.label[t.from])}</span></span>
+                <span class="t-who"><span class="t-role">מעביר</span><span class="t-name">${nameHtml(ent.label[t.from])}</span></span>
             </span>
-            <span class="t-arrow" aria-label="ל">${icon('arrow')}</span>
+            <span class="t-flow" aria-hidden="true"><span class="t-line"></span>${icon('arrow')}</span>
             <span class="t-person">
                 ${entityAvatar(t.to, ent)}
-                <span><span class="t-role">מקבל</span><span class="t-name">${nameHtml(ent.label[t.to])}</span></span>
+                <span class="t-who"><span class="t-role">מקבל</span><span class="t-name">${nameHtml(ent.label[t.to])}</span></span>
             </span>
             <span class="t-amount">${moneyHtml(t.amount)}</span>
         </li>`;

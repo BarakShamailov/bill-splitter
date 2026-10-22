@@ -30,6 +30,7 @@ Cards 22px radius, rows and inputs 12–18px, chips and status pills fully round
 ## Components
 - **Stepper**: four tab cards (משתתפים, הוצאות, חישוב, סיכום), icon tile + label; active = primary border and tint with a solid primary icon; done = green check badge.
 - **Card head**: 44px tinted icon tile, title, one-line sub.
+- **Group heading**: in the participant list, each couple/group is a pill badge (users icon, name at 0.9375rem/700, `--primary-soft` fill, `--primary-ink` text) followed by a smaller gray meta line; people without a group get a violet-gray "ללא קבוצה" badge (user icon) shown only when at least one group exists. Sections are separated by a hairline.
 - **Expense row**: type icon guessed from the name (`EXPENSE_KINDS`), name, meta line, total, chevron; expands in place to the participant chips, payers and math line.
 - **Donut**: SVG, circumference 100, one segment per person in their color, total in the center, legend with amount and percent (two columns past 7 people).
 - **Transfer row**: payer avatar, arrow, receiver avatar, amount.
