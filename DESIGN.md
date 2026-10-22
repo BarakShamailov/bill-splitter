@@ -1,6 +1,6 @@
 # Design
 
-Bill Splitter Pro: white ground, vivid color, and every friend owns a color that follows them through the whole calculation (avatar, participant chip, donut slice, legend row, transfer row, personal page).
+EasySplit: white ground, vivid color, and every friend owns a color that follows them through the whole calculation (avatar, participant chip, donut slice, legend row, transfer row, personal page).
 
 ## Theme
 - Light by default (`data-theme="light"` on `<html>`). Dark mode is manual only, from the moon/sun button in the top bar, stored in `localStorage['billSplitter.theme']`.

@@ -1,7 +1,7 @@
 
-# 💰 Bill Splitter 
+# 💰 EasySplit
 
-### Smart Bill Splitting Made Simple
+### Split bills. Keep it simple.
 
 Split expenses fairly among friends, couples, and groups — with multiple categories and minimum transfers.
 
@@ -27,7 +27,7 @@ You went out with 12 friends. Pizza was ordered for everyone, but only 8 people 
 
 ### 💡 The Solution
 
-Bill Splitter handles all the complexity:
+EasySplit handles all the complexity:
 
 ---
 
@@ -67,7 +67,7 @@ Bill Splitter handles all the complexity:
 
 ## 🚀 Live Demo
 
-### **[👉 Launch Bill Splitter Pro](https://barakshamailov.github.io/bill-splitter)**
+### **[👉 Launch EasySplit](https://barakshamailov.github.io/bill-splitter)**
 
 > Click **"📋 Load Example"** to see it in action with sample data!
 
