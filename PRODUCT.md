@@ -27,7 +27,7 @@ Used at the end of an event, often in a hurry and on mobile. The output is consu
 - Hebrew, RTL, including mixed Hebrew/number text.
 
 ## Brand Commitments
-- Name: "Bill Splitter Pro".
+- Name: "EasySplit" (renamed from "Bill Splitter Pro"), tagline "Split bills. Keep it simple". Wordmark: Rubik 800, "Easy" navy + "Split" teal; icon: three people sharing a receipt.
 - User-set constraint: white background by default, bold vivid colors, with an optional manual dark mode toggle.
 - Reference the user supplied: a modern, light, card-based expense app with step tabs, colored participant avatars, expense rows with icons, a donut chart summary, and a "who pays whom" card.
 

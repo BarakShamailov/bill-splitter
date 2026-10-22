@@ -1,5 +1,5 @@
 /**
- * Bill Splitter Pro - UI Application
+ * EasySplit - UI Application
  * Pure JavaScript, no frameworks
  */
 
@@ -1794,7 +1794,7 @@ async function route() {
         editor.hidden = false;
         shared.hidden = true;
         exampleBtn.hidden = false;
-        document.title = 'Bill Splitter Pro · חלוקת הוצאות';
+        document.title = 'EasySplit · חלוקת הוצאות';
         return;
     }
 
@@ -1827,11 +1827,11 @@ async function route() {
         body.innerHTML = banner + (meName
             ? personalHtml(meName, data, hashBase)
             : resultsHtml(data, { shared: true, hashBase }));
-        document.title = meName ? `החלק של ${meName} · Bill Splitter Pro` : 'חלוקת ההוצאות · Bill Splitter Pro';
+        document.title = meName ? `החלק של ${meName} · EasySplit` : 'חלוקת ההוצאות · EasySplit';
     } catch (err) {
         if (seq !== routeSeq) return;
         body.innerHTML = invalidLinkHtml(unsupported);
-        document.title = 'קישור לא תקין · Bill Splitter Pro';
+        document.title = 'קישור לא תקין · EasySplit';
     }
     window.scrollTo(0, 0);
 }

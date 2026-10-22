@@ -1,5 +1,5 @@
 /* ==========================================================
-   Bill Splitter Pro
+   EasySplit
    White ground, vivid color. Every friend owns a color, and
    that color follows them through the whole calculation.
    ========================================================== */
@@ -46,6 +46,9 @@
     --p8: #5A9E0C;
     --p9: #C25BE8;
 
+    --brand-navy: #0F2557;
+    --brand-teal: #0FA37A;
+
     --radius: 18px;
     --radius-sm: 12px;
     --radius-xs: 9px;
@@ -88,6 +91,9 @@
     --pos-soft: #12352A;
     --warn: #FFB648;
     --warn-soft: #3A2A12;
+
+    --brand-navy: #F2F4FA;
+    --brand-teal: #1FBF7E;
 
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -10px rgba(0, 0, 0, 0.5);
     --shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.35), 0 16px 36px -12px rgba(0, 0, 0, 0.6);
@@ -209,14 +215,12 @@ a { color: var(--primary-ink); text-underline-offset: 3px; }
     text-decoration: none;
 }
 
-.brand-mark svg { width: 34px; height: 34px; display: block; }
-.brand-mark .bm-a { fill: var(--primary); }
-.brand-mark .bm-b { fill: #FFC53D; }
+.brand-mark svg { width: 40px; height: 40px; display: block; }
 
 .brand-text { display: flex; flex-direction: column; line-height: 1.15; }
-.brand-name { font-size: 1.125rem; font-weight: 700; letter-spacing: -0.01em; text-align: right; }
-.brand-name b { color: var(--primary); font-weight: 800; }
-.brand-sub { font-size: 0.75rem; color: var(--ink-3); }
+.brand-name { font-size: 1.375rem; font-weight: 600; letter-spacing: -0.01em; line-height: 1.05; text-align: right; color: var(--brand-navy); }
+.brand-name b { color: var(--brand-teal); font-weight: 600; }
+.brand-sub { margin-top: 2px; font-size: 0.75rem; color: var(--ink-3); text-align: right; }
 
 .topbar-actions { display: flex; align-items: center; gap: 6px; }
 
