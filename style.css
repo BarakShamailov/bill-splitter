@@ -583,6 +583,29 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; marg
 
 .people-head { display: flex; align-items: center; gap: 10px; }
 .people-head h3 { font-size: 1rem; font-weight: 700; }
+.people-head .btn { margin-inline-start: auto; }
+
+.group-picks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.chip-sm {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    min-height: 32px;
+    padding: 4px 12px;
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--ink-2);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color .15s, border-color .15s, color .15s;
+}
+.chip-sm:hover { border-color: var(--line-strong); }
+.chip-sm .icon { width: 14px; height: 14px; }
+.chip-sm bdi { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip-sm.on { background: var(--primary-soft); border-color: var(--primary); color: var(--primary-ink); }
 
 .group-label {
     display: flex;
