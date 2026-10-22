@@ -327,11 +327,48 @@ function personRowHtml(p) {
         </li>`;
 }
 
+// Distinct, trimmed couple/group names already in use
+function existingGroups() {
+    return [...new Set(persons.map(p => (p.couple_group || '').trim()).filter(Boolean))];
+}
+
+// One-tap chips under the group field, built with textContent (names are user input)
+function renderGroupPicks() {
+    const box = document.getElementById('groupPicks');
+    const current = document.getElementById('coupleGroup').value.trim();
+    const groups = existingGroups();
+    box.replaceChildren(...groups.map(name => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chip-sm';
+        btn.dataset.action = 'pick-group';
+        btn.dataset.group = name;
+        const on = name === current;
+        btn.classList.toggle('on', on);
+        btn.setAttribute('aria-pressed', String(on));
+        btn.insertAdjacentHTML('afterbegin', icon('users'));
+        const label = document.createElement('bdi');
+        label.textContent = name;
+        btn.appendChild(label);
+        return btn;
+    }));
+    box.hidden = groups.length === 0;
+}
+
+function pickGroup(name) {
+    const groupInput = document.getElementById('coupleGroup');
+    const nameInput = document.getElementById('personName');
+    groupInput.value = groupInput.value.trim() === name ? '' : name;
+    renderGroupPicks();
+    if (!nameInput.value.trim()) nameInput.focus();
+    else document.getElementById('personSubmit').focus();
+}
+
 function renderPersons() {
     const container = document.getElementById('personsList');
-    const groupNames = [...new Set(persons.map(p => p.couple_group).filter(Boolean))];
     document.getElementById('groupOptions').innerHTML =
-        groupNames.map(g => `<option value="${esc(g)}">`).join('');
+        existingGroups().map(g => `<option value="${esc(g)}">`).join('');
+    renderGroupPicks();
 
     if (persons.length === 0) {
         container.innerHTML = `
@@ -357,6 +394,9 @@ function renderPersons() {
             <div class="people-head">
                 <h3>מי משתתף</h3>
                 <span class="count" aria-label="${persons.length} משתתפים">${persons.length}</span>
+                <button type="button" class="btn btn-ghost btn-sm danger-text" data-action="clear-people">
+                    ${icon('trash')} מחיקת הכול
+                </button>
             </div>`;
 
     for (const [groupName, members] of Object.entries(groups)) {
@@ -1041,7 +1081,7 @@ function shareSectionHtml(data, ent) {
                     </div>
                     <p class="share-desc">קישור אחד לקבוצת הוואטסאפ, וכל אחד לוחץ על השם שלו.</p>
                     <div class="share-actions">
-                        <a class="btn btn-whatsapp" href="${esc(waUrl(groupMessage(data)))}" target="_blank" rel="noopener">
+                        <a class="btn btn-whatsapp" id="shareGroupWa" href="${esc(waUrl(groupMessage(data)))}" target="_blank" rel="noopener">
                             ${icon('whatsapp')} שיתוף בקבוצת וואטסאפ
                         </a>
                         <button type="button" class="btn btn-secondary" data-action="copy-group">${icon('link')} העתקת קישור קבוצתי</button>
@@ -1077,9 +1117,11 @@ function shareSectionHtml(data, ent) {
 
 function renderResults(data) {
     lastResult = data;
+    shareHash = null;
     document.getElementById('calcBody').innerHTML = calcHtml(data);
     document.getElementById('summaryBody').innerHTML = summaryHtml(data);
     document.getElementById('editor').classList.add('has-results');
+    prepareShareLinks();
 }
 
 // ========== PERSONAL VIEW (from link) ==========
@@ -1137,25 +1179,74 @@ function personalHtml(name, data, hashBase) {
 }
 
 // ========== SHARE LINKS ==========
-function toBase64Url(str) {
-    const bytes = new TextEncoder().encode(str);
+function bytesToBase64Url(bytes) {
     let bin = '';
     bytes.forEach(b => { bin += String.fromCharCode(b); });
     return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-function fromBase64Url(b64) {
+function base64UrlToBytes(b64) {
     const norm = b64.replace(/-/g, '+').replace(/_/g, '/');
     const bin = atob(norm + '='.repeat((4 - norm.length % 4) % 4));
-    const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+    return Uint8Array.from(bin, c => c.charCodeAt(0));
+}
+
+function toBase64Url(str) {
+    return bytesToBase64Url(new TextEncoder().encode(str));
+}
+
+function fromBase64Url(b64) {
+    return new TextDecoder().decode(base64UrlToBytes(b64));
+}
+
+// Share links come in two formats: "#z=" (deflate-compressed, shorter) and the
+// older "#s=" (plain base64url). Both carry the same JSON payload.
+const MAX_PAYLOAD = 256 * 1024; // decompressed bytes accepted from a link
+
+// Checks the deflate-raw format itself, not just that the classes exist
+const deflateRawSupported = (() => {
+    try {
+        new CompressionStream('deflate-raw');
+        new DecompressionStream('deflate-raw');
+        return true;
+    } catch (e) {
+        return false;
+    }
+})();
+
+async function deflateToBase64Url(str) {
+    const stream = new Blob([new TextEncoder().encode(str)]).stream()
+        .pipeThrough(new CompressionStream('deflate-raw'));
+    return bytesToBase64Url(new Uint8Array(await new Response(stream).arrayBuffer()));
+}
+
+async function inflateFromBase64Url(b64) {
+    const stream = new Blob([base64UrlToBytes(b64)]).stream()
+        .pipeThrough(new DecompressionStream('deflate-raw'));
+    const reader = stream.getReader();
+    const chunks = [];
+    let total = 0;
+    for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        total += value.byteLength;
+        if (total > MAX_PAYLOAD) {
+            await reader.cancel();
+            throw new Error('payload too large');
+        }
+        chunks.push(value);
+    }
+    const bytes = new Uint8Array(total);
+    let offset = 0;
+    chunks.forEach(c => { bytes.set(c, offset); offset += c.byteLength; });
     return new TextDecoder().decode(bytes);
 }
 
 // Compact payload: names once, everything else by index
-function encodeState() {
+function buildPayload() {
     const index = {};
     persons.forEach((p, i) => { index[p.name] = i; });
-    const payload = {
+    return {
         v: 1,
         p: persons.map(p => p.couple_group ? [p.name, p.couple_group] : [p.name]),
         c: categories
@@ -1166,11 +1257,15 @@ function encodeState() {
                 Object.entries(categoryPayments(cat)).map(([n, a]) => [index[n], a])
             ])
     };
-    return toBase64Url(JSON.stringify(payload));
 }
 
-function decodeState(encoded) {
-    const payload = JSON.parse(fromBase64Url(encoded));
+// Legacy "#s=" format, also the fallback when compression is unavailable
+function encodeState() {
+    return toBase64Url(JSON.stringify(buildPayload()));
+}
+
+function parsePayload(json) {
+    const payload = JSON.parse(json);
     if (!payload || payload.v !== 1 || !Array.isArray(payload.p) || !Array.isArray(payload.c)) {
         throw new Error('bad payload');
     }
@@ -1194,11 +1289,42 @@ function decodeState(encoded) {
     return { persons: ps, categories: cs };
 }
 
+function decodeState(encoded) {
+    return parsePayload(fromBase64Url(encoded));
+}
+
+// Fragment of the current share link ("z=..."), filled in asynchronously after
+// each render; until then (or if compression fails) links use the "s=" format
+let shareHash = null;
+let shareSeq = 0;
+
 function shareUrl(meIndex) {
     const base = location.href.split('#')[0];
-    let url = `${base}#s=${encodeState()}`;
+    let url = `${base}#${shareHash || 's=' + encodeState()}`;
     if (meIndex !== undefined) url += `&me=${meIndex}`;
     return url;
+}
+
+function refreshShareLinks() {
+    if (!lastResult) return;
+    const group = document.getElementById('shareGroupWa');
+    const personal = document.getElementById('sharePersonalWa');
+    if (group) group.href = waUrl(groupMessage(lastResult));
+    if (personal) {
+        const i = Number(document.getElementById('sharePerson').value);
+        personal.href = waUrl(personalMessage(persons[i].name, i, lastResult, buildEntities(lastResult)));
+    }
+}
+
+async function prepareShareLinks() {
+    const seq = ++shareSeq;
+    if (!deflateRawSupported) return;
+    try {
+        const z = await deflateToBase64Url(JSON.stringify(buildPayload()));
+        if (seq !== shareSeq) return;
+        shareHash = `z=${z}`;
+        refreshShareLinks();
+    } catch (e) { /* keep the uncompressed links */ }
 }
 
 function waUrl(text) {
@@ -1362,18 +1488,35 @@ function updateActionbar() {
 }
 
 // ========== RESET / EXAMPLE ==========
-function resetAll() {
-    if (!confirm('למחוק את כל המשתתפים וההוצאות ולהתחיל חישוב חדש?')) return;
+// Empty every participant, expense and computed result
+function wipeAll() {
     persons = [];
     categories = [];
     lastResult = null;
+    shareHash = null;
+    shareSeq++;
     editingName = null;
+    openCats.clear();
+    document.getElementById('calcBody').innerHTML = '';
+    document.getElementById('summaryBody').innerHTML = '';
+    document.getElementById('editor').classList.remove('has-results');
     save();
     updatePersonForm();
     renderPersons();
     renderCategories();
+}
+
+function resetAll() {
+    if (!confirm('למחוק את כל המשתתפים וההוצאות ולהתחיל חישוב חדש?')) return;
+    wipeAll();
     goToStep(1);
     showToast('הכול נמחק. אפשר להתחיל מחדש.', 'info');
+}
+
+function clearPeople() {
+    if (!confirm('למחוק את כל המשתתפים וגם את ההוצאות?')) return;
+    wipeAll();
+    showToast('כל המשתתפים וההוצאות נמחקו', 'info');
 }
 
 function loadExample() {
@@ -1542,6 +1685,8 @@ document.addEventListener('click', e => {
             break;
         case 'print': printResults(); break;
         case 'reset': resetAll(); break;
+        case 'clear-people': clearPeople(); break;
+        case 'pick-group': pickGroup(el.dataset.group); break;
     }
 });
 
@@ -1608,6 +1753,7 @@ document.getElementById('personName').addEventListener('input', () => {
     document.getElementById('personNameError').textContent = '';
     document.getElementById('personName').removeAttribute('aria-invalid');
 });
+document.getElementById('coupleGroup').addEventListener('input', renderGroupPicks);
 document.getElementById('categoryName').addEventListener('input', () => {
     document.getElementById('categoryNameError').textContent = '';
     document.getElementById('categoryName').removeAttribute('aria-invalid');
@@ -1618,9 +1764,26 @@ document.addEventListener('keydown', e => {
 });
 
 // ========== ROUTING ==========
-function route() {
+let routeSeq = 0; // only the latest route() may update the page
+
+function invalidLinkHtml(unsupported) {
+    return `
+        <div class="empty">
+            ${icon('link', 'empty-icon')}
+            <p class="empty-title">הקישור לא תקין</p>
+            <p class="empty-text">${unsupported
+                ? 'הדפדפן הזה לא תומך בקישור המקוצר. נסו לפתוח בדפדפן מעודכן.'
+                : 'ייתכן שהוא נקטע כשהועתק. בקשו מהשולח לשלוח אותו שוב.'}</p>
+            <a class="btn btn-primary" href="./">התחלת חישוב חדש</a>
+        </div>`;
+}
+
+async function route() {
+    const seq = ++routeSeq;
     const params = new URLSearchParams(location.hash.slice(1));
-    const encoded = params.get('s');
+    const z = params.get('z');
+    const legacy = params.get('s');
+    const encoded = z || legacy;
     const editor = document.getElementById('editor');
     const shared = document.getElementById('shared');
     const exampleBtn = document.getElementById('exampleBtn');
@@ -1640,12 +1803,24 @@ function route() {
     exampleBtn.hidden = true;
     const body = document.getElementById('sharedBody');
     const banner = `<p class="shared-banner">${icon('eye')} חישוב ששותף איתך · לצפייה בלבד</p>`;
+    let unsupported = false;
 
     try {
-        const state = decodeState(encoded);
+        let state;
+        if (z) {
+            if (!deflateRawSupported) {
+                unsupported = true;
+                throw new Error('deflate-raw unsupported');
+            }
+            body.innerHTML = '';
+            state = parsePayload(await inflateFromBase64Url(z));
+            if (seq !== routeSeq) return;
+        } else {
+            state = decodeState(legacy);
+        }
         colorNames = state.persons.map(p => p.name);
         const data = runCalculator(state.persons, state.categories);
-        const hashBase = `s=${encoded}`;
+        const hashBase = z ? `z=${z}` : `s=${legacy}`;
         const me = params.get('me');
         const meName = me !== null && state.persons[Number(me)] ? state.persons[Number(me)].name : null;
 
@@ -1654,13 +1829,8 @@ function route() {
             : resultsHtml(data, { shared: true, hashBase }));
         document.title = meName ? `החלק של ${meName} · Bill Splitter Pro` : 'חלוקת ההוצאות · Bill Splitter Pro';
     } catch (err) {
-        body.innerHTML = `
-            <div class="empty">
-                ${icon('link', 'empty-icon')}
-                <p class="empty-title">הקישור לא תקין</p>
-                <p class="empty-text">ייתכן שהוא נקטע כשהועתק. בקשו מהשולח לשלוח אותו שוב.</p>
-                <a class="btn btn-primary" href="./">התחלת חישוב חדש</a>
-            </div>`;
+        if (seq !== routeSeq) return;
+        body.innerHTML = invalidLinkHtml(unsupported);
         document.title = 'קישור לא תקין · Bill Splitter Pro';
     }
     window.scrollTo(0, 0);

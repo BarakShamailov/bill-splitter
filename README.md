@@ -43,6 +43,8 @@ Bill Splitter handles all the complexity:
 | 📊 **Detailed Breakdown** | See exactly what each person owes and why |
 | 💬 **WhatsApp Sharing** | Send one group link with the full summary, or a personal link to each friend that opens directly on their own share |
 | 🔍 **Transparent Math** | Every amount shows how it was calculated: expense total ÷ participants, minus what you paid |
+| 👥 **Quick Group Pick** | Couples/groups already added appear as one-tap chips under the group field, so you never retype a group name |
+| 🗑️ **Clear All** | One button removes all participants and expenses (with confirmation) |
 | ✏️ **Edit Participants** | Rename people or change their group at any time; every expense updates with them |
 | ✅ **Review Before Calculating** | A "לפני החישוב" checklist flags what's missing (and what will be ignored) with a one-click fix link |
 | 📋 **Copy Results** | One-click copy of the summary text |
@@ -73,17 +75,18 @@ Bill Splitter handles all the complexity:
 
 ## 🔗 How Share Links Work
 
-There is no server. When you share, the whole calculation (names, groups, expenses, payments) is packed into the link itself, after the `#`:
+There is no server. When you share, the whole calculation (names, groups, expenses, payments) is packed into the link itself, after the `#`, and compressed in your browser so the link stays short:
 
 ```
-https://barakshamailov.github.io/bill-splitter/#s=<data>&me=<person>
+https://barakshamailov.github.io/bill-splitter/#z=<data>&me=<person>
 ```
 
-- `s` is the calculation, encoded as UTF-8 JSON in base64url, so Hebrew names survive intact.
+- `z` is the calculation as UTF-8 JSON, compressed with deflate (the browser's built-in `CompressionStream`) and encoded as base64url, so Hebrew names survive intact. It is roughly half the length of the old format.
+- Older links that use `s=<data>` (the same JSON without compression) keep working. The app also falls back to `s=` links when the browser can't compress.
 - `me` (optional) is the friend's position in the list. With it, the link opens on "היי <name>, זה החלק שלך": how much to transfer, to whom, and the line-by-line calculation.
 - Without `me`, the link opens the full group summary, where each friend can tap their name.
 - Shared links open a read-only view: no editing controls, and the recipient's own saved draft is never touched.
-- The part after `#` is never sent to any server, including GitHub Pages.
+- Compression and decompression happen entirely on the device. The part after `#` is never sent to any server, including GitHub Pages. Decompressed data is capped at 256 KB.
 
 Links only work from the published site, not from a local `file://` copy.
 
