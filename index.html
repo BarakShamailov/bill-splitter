@@ -1,118 +1,172 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="he" dir="rtl" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bill Splitter Pro 💰</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#FFFFFF">
+    <meta name="description" content="חלוקת הוצאות הוגנת בין חברים: מי משלם כמה, למי, ואיך זה חושב.">
+    <title>Bill Splitter Pro · חלוקת הוצאות</title>
+    <script>
+        // Apply the saved theme before first paint (light unless the user chose dark)
+        try {
+            if (localStorage.getItem('billSplitter.theme') === 'dark') {
+                document.documentElement.dataset.theme = 'dark';
+                document.querySelector('meta[name="theme-color"]').content = '#0E1220';
+            }
+        } catch (e) { /* storage unavailable */ }
+    </script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%232F5BFF'/><path d='M16 6a10 10 0 1 0 10 10H16z' fill='white'/><path d='M18 4a10 10 0 0 1 10 10H18z' fill='%23FFC53D'/></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Toast Container -->
-    <div id="toastContainer" class="toast-container"></div>
+    <a class="skip-link" href="#main">דילוג לתוכן</a>
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
-    <div class="app-container">
-        <!-- Header -->
-        <header class="app-header">
-            <div class="header-bg"></div>
-            <div class="header-content">
-                <div class="logo">💰</div>
-                <h1>Bill Splitter Pro</h1>
-                <p class="subtitle">חלוקת חשבון חכמה • פשוט ומדויק</p>
-                <div class="header-tags">
-                    <span class="tag">🧮 חישוב אוטומטי</span>
-                    <span class="tag">💑 תמיכה בזוגות</span>
-                    <span class="tag">📦 קטגוריות</span>
-                </div>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <a class="brand" href="./" aria-label="Bill Splitter Pro, מסך הבית">
+                <span class="brand-mark" aria-hidden="true">
+                    <svg viewBox="0 0 32 32"><path d="M16 6a10 10 0 1 0 10 10H16z" class="bm-a"/><path d="M18 4a10 10 0 0 1 10 10H18z" class="bm-b"/></svg>
+                </span>
+                <span class="brand-text">
+                    <span class="brand-name" dir="ltr">Bill Splitter <b>Pro</b></span>
+                    <span class="brand-sub">חלוקת הוצאות הוגנת</span>
+                </span>
+            </a>
+            <div class="topbar-actions">
+                <button type="button" class="btn btn-ghost btn-sm" id="exampleBtn" data-action="load-example">טען דוגמה</button>
+                <button type="button" class="icon-btn theme-btn" id="themeBtn" data-action="toggle-theme" aria-label="מצב כהה" aria-pressed="false">
+                    <svg class="icon i-moon" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+                    <svg class="icon i-sun" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+                </button>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <main class="main-content">
-            <!-- Step 1: People -->
-            <section class="card step-card" id="step1">
-                <div class="card-header">
-                    <div class="step-badge">1</div>
-                    <h2>👥 המשתתפים
-                        <span class="count-badge"
-                              id="personsCount">0</span>
-                    </h2>
-                    <button class="btn btn-example"
-                            onclick="loadExample()">
-                        📋 טען דוגמה
-                    </button>
-                </div>
-                <div class="card-body">
-                    <div class="form-row">
-                        <div class="input-group">
-                            <label for="personName">שם</label>
-                            <input type="text" id="personName"
-                                   placeholder="הכנס שם...">
+    <!-- Editor: steps 1-4 -->
+    <div id="editor" class="app">
+        <section class="hero" aria-labelledby="h-hero">
+            <div class="hero-copy">
+                <h1 id="h-hero">הוצאות משותפות,<br>חישוב פשוט.</h1>
+                <p class="hero-lead">מוסיפים מי השתתף ומי שילם, ומקבלים מי מעביר למי, בכמה שפחות העברות.</p>
+            </div>
+            <div class="hero-status" id="heroStatus" aria-live="polite"></div>
+        </section>
+
+        <nav class="stepper" aria-label="שלבים">
+            <button type="button" class="step" data-step="1">
+                <span class="step-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M16 3.1a4 4 0 0 1 0 7.8M21 21v-2a4 4 0 0 0-3-3.9"/></svg></span>
+                <span class="step-label">משתתפים</span>
+            </button>
+            <button type="button" class="step" data-step="2">
+                <span class="step-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h4"/></svg></span>
+                <span class="step-label">הוצאות</span>
+            </button>
+            <button type="button" class="step" data-step="3">
+                <span class="step-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M15 2.5A9 9 0 0 1 21.5 9H15z"/></svg></span>
+                <span class="step-label">חישוב</span>
+            </button>
+            <button type="button" class="step" data-step="4">
+                <span class="step-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M3 11.5 21 3l-8.5 18-2.5-7z"/><path d="m10 14 5-5"/></svg></span>
+                <span class="step-label">סיכום</span>
+            </button>
+        </nav>
+
+        <main id="main">
+            <!-- Step 1: participants -->
+            <section class="view" id="view1" aria-labelledby="h-people">
+                <div class="card">
+                    <div class="card-head">
+                        <span class="card-icon c-blue" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M16 3.1a4 4 0 0 1 0 7.8M21 21v-2a4 4 0 0 0-3-3.9"/></svg></span>
+                        <div class="card-titles">
+                            <h2 id="h-people">משתתפים</h2>
+                            <p class="card-sub">זוגות או משפחות שמתחשבנים ביניהם מקבלים שם קבוצה משותף, וכך יעבירו רק את ההפרש.</p>
                         </div>
-                        <div class="input-group">
-                            <label for="coupleGroup">
-                                זוג / קבוצה
-                                <span class="optional">(אופציונלי)</span>
-                            </label>
-                            <input type="text" id="coupleGroup"
-                                   placeholder="שם הזוג...">
-                        </div>
-                        <button class="btn btn-primary"
-                                onclick="addPerson()">
-                            ➕ הוסף
-                        </button>
                     </div>
+
+                    <form class="person-form" id="personForm" autocomplete="off" novalidate>
+                        <h3 class="sr-only" id="personFormTitle">משתתף חדש</h3>
+                        <div class="field">
+                            <label for="personName">שם</label>
+                            <input type="text" id="personName" placeholder="דנה" maxlength="30"
+                                   enterkeyhint="next" aria-describedby="personNameError">
+                            <p class="field-error" id="personNameError" role="alert"></p>
+                        </div>
+                        <div class="field">
+                            <label for="coupleGroup">זוג או קבוצה <span class="hint">לא חובה</span></label>
+                            <input type="text" id="coupleGroup" placeholder="דנה ואורי" maxlength="30"
+                                   list="groupOptions" enterkeyhint="done">
+                            <datalist id="groupOptions"></datalist>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="personSubmit"></button>
+                            <button type="button" class="btn btn-secondary" id="personCancel" data-action="cancel-edit" hidden>ביטול</button>
+                        </div>
+                    </form>
+
                     <div id="personsList"></div>
                 </div>
             </section>
 
-            <!-- Step 2: Categories -->
-            <section class="card step-card" id="step2">
-                <div class="card-header">
-                    <div class="step-badge">2</div>
-                    <h2>📦 קטגוריות הוצאה</h2>
-                </div>
-                <div class="card-body">
-                    <div class="form-row">
-                        <div class="input-group" style="flex:2">
-                            <label for="categoryName">שם הקטגוריה</label>
-                            <input type="text" id="categoryName"
-                                   placeholder='לדוגמה: פיצות 🍕'>
+            <!-- Step 2: expenses -->
+            <section class="view" id="view2" aria-labelledby="h-expenses" hidden>
+                <div class="card">
+                    <div class="card-head">
+                        <span class="card-icon c-green" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h4"/></svg></span>
+                        <div class="card-titles">
+                            <h2 id="h-expenses">הוצאות</h2>
+                            <p class="card-sub">כל הוצאה מתחלקת שווה בשווה רק בין מי שהשתתף בה.</p>
                         </div>
-                        <button class="btn btn-primary"
-                                onclick="addCategory()">
-                            ➕ הוסף קטגוריה
-                        </button>
                     </div>
+
+                    <form class="expense-form" id="expenseForm" autocomplete="off" novalidate>
+                        <div class="field">
+                            <label for="categoryName" class="sr-only">שם ההוצאה החדשה</label>
+                            <input type="text" id="categoryName" placeholder="ארוחת ערב, מלון, דלק..." maxlength="40"
+                                   enterkeyhint="done" aria-describedby="categoryNameError">
+                            <p class="field-error" id="categoryNameError" role="alert"></p>
+                        </div>
+                        <button type="submit" class="btn btn-green">
+                            <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                            הוספת הוצאה
+                        </button>
+                    </form>
+
                     <div id="categoriesList"></div>
                 </div>
+                <div id="reviewPanel"></div>
             </section>
 
-            <!-- Calculate -->
-            <div class="calculate-section">
-                <button class="btn btn-calculate"
-                        onclick="calculate()">
-                    🧮 חשב חלוקה
-                </button>
-            </div>
+            <!-- Step 3: calculation -->
+            <section class="view" id="view3" aria-labelledby="h-calc" hidden>
+                <div id="calcBody"></div>
+            </section>
 
-            <!-- Results -->
-            <section class="card results-card" id="resultsCard"
-                     style="display:none;">
-                <div class="card-header results-header">
-                    <h2>📊 תוצאות</h2>
-                </div>
-                <div class="card-body" id="resultsBody"></div>
+            <!-- Step 4: summary + share -->
+            <section class="view" id="view4" aria-labelledby="h-summary" hidden>
+                <div id="summaryBody"></div>
             </section>
         </main>
 
-        <footer class="app-footer">
-            <p>💰 Bill Splitter Pro — חלוקת חשבון חכמה</p>
-            <p class="footer-sub">
-                רץ 100% בדפדפן • ללא שרת • הנתונים לא נשמרים
-            </p>
-        </footer>
+        <div class="actionbar" id="actionbar">
+            <div class="actionbar-inner">
+                <button type="button" class="btn btn-secondary btn-lg" id="backBtn" data-action="back">חזרה</button>
+                <button type="button" class="btn btn-primary btn-lg btn-wide" id="nextBtn" data-action="next"></button>
+            </div>
+        </div>
     </div>
+
+    <!-- Shared read-only view, opened from a link -->
+    <div id="shared" class="app" hidden>
+        <main id="sharedBody"></main>
+    </div>
+
+    <footer class="footer">
+        <p>הכול רץ בדפדפן. אין שרת, ושום נתון לא נשמר אצלנו.</p>
+    </footer>
 
     <script src="calculator.js"></script>
     <script src="app.js"></script>
