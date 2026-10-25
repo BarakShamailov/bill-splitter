@@ -62,10 +62,27 @@ function icon(name, cls = 'icon') {
 // Every friend owns a color by position in the list; it follows them everywhere
 let colorNames = null; // set by the shared view; editor uses the live list
 
+const PALETTE_SIZE = 20; // .pc-0 ... .pc-19 in style.css
+
 function colorOf(name) {
     const names = colorNames || persons.map(p => p.name);
     const i = names.indexOf(name);
-    return i < 0 ? 0 : i % 10;
+    if (i < 0) return 0;
+    if (i >= PALETTE_SIZE) ensureExtraColor(i);
+    return i;
+}
+
+// Past the palette: a golden-angle hue per position, so no two people share a color
+function ensureExtraColor(i) {
+    let sheet = document.getElementById('extraColors');
+    if (!sheet) {
+        sheet = document.createElement('style');
+        sheet.id = 'extraColors';
+        document.head.appendChild(sheet);
+    }
+    if (sheet.textContent.includes(`.pc-${i} `)) return;
+    const hue = Math.round((i * 137.508) % 360);
+    sheet.textContent += `.pc-${i} { --c: hsl(${hue} 62% 44%); }\n`;
 }
 
 function avatarHtml(name, size = '') {
@@ -905,38 +922,100 @@ function donutHtml(data) {
     const gap = rows.length > 1 ? 0.6 : 0;
     let offset = 0;
 
-    const segs = rows.map(p => {
+    const pct = p => `${(p.owes / sum * 100).toFixed(1)}%`;
+    const segs = rows.map((p, i) => {
         const len = (p.owes / sum) * 100;
         const seg = `<circle class="donut-seg pc-${colorOf(p.name)}" cx="21" cy="21" r="15.9155"
                         style="stroke: var(--c)" stroke-dasharray="${Math.max(len - gap, 0.2)} ${100 - Math.max(len - gap, 0.2)}"
-                        stroke-dashoffset="${-offset}"></circle>`;
+                        stroke-dashoffset="${-offset}" data-slice="${i}" data-name="${esc(p.name)}"
+                        data-amount="${esc(money(p.owes))}" data-pct="${pct(p)}" tabindex="0" role="img"
+                        aria-label="${esc(`${p.name}: ${money(p.owes)}, ${pct(p)}`)}"></circle>`;
         offset += len;
         return seg;
     }).join('');
 
-    const legend = rows.map(p => `
-        <li class="pc-${colorOf(p.name)}">
+    const legend = rows.map((p, i) => `
+        <li class="pc-${colorOf(p.name)}" data-slice="${i}">
             <span class="dot" aria-hidden="true"></span>
             <span class="l-name">${nameHtml(p.name)}</span>
             <span class="l-amount">${moneyHtml(p.owes)}</span>
-            <span class="l-pct">${(p.owes / sum * 100).toFixed(1)}%</span>
+            <span class="l-pct">${pct(p)}</span>
         </li>`).join('');
 
     return `
         <div class="split-grid">
             <div class="donut">
-                <svg viewBox="0 0 42 42" role="img" aria-label="החלק של כל משתתף מסך ההוצאות">
+                <svg viewBox="0 0 42 42" role="group" aria-label="החלק של כל משתתף מסך ההוצאות">
                     <circle class="donut-track" cx="21" cy="21" r="15.9155"></circle>
                     ${segs}
                 </svg>
-                <div class="donut-center">
-                    <span class="donut-total">${moneyHtml(data.totalEvent)}</span>
-                    <span class="donut-label">סה"כ הוצאות</span>
+                <div class="donut-center" aria-live="polite">
+                    <span class="donut-default">
+                        <span class="donut-total">${moneyHtml(data.totalEvent)}</span>
+                        <span class="donut-label">סה"כ הוצאות</span>
+                    </span>
+                    <span class="donut-detail" hidden>
+                        <span class="dd-name"><bdi></bdi></span>
+                        <bdi class="dd-amount num" dir="ltr"></bdi>
+                        <span class="dd-pct"></span>
+                    </span>
                 </div>
             </div>
             <ul class="legend ${rows.length > 7 ? 'many' : ''}">${legend}</ul>
         </div>`;
 }
+
+// Highlight one slice (and its legend row) and show its owner in the center
+function setDonutSlice(grid, index) {
+    const donut = grid.querySelector('.donut');
+    const legend = grid.querySelector('.legend');
+    const active = index === null ? null : grid.querySelector(`.donut-seg[data-slice="${index}"]`);
+    grid.querySelectorAll('[data-slice]').forEach(el => {
+        el.classList.toggle('is-active', active !== null && el.dataset.slice === String(index));
+    });
+    donut.classList.toggle('has-active', Boolean(active));
+    legend.classList.toggle('has-active', Boolean(active));
+    donut.dataset.active = active ? String(index) : '';
+
+    const detail = donut.querySelector('.donut-detail');
+    donut.querySelector('.donut-default').hidden = Boolean(active);
+    detail.hidden = !active;
+    if (active) {
+        detail.className = `donut-detail ${[...active.classList].find(c => c.startsWith('pc-'))}`;
+        detail.querySelector('.dd-name bdi').textContent = active.dataset.name;
+        detail.querySelector('.dd-amount').textContent = active.dataset.amount;
+        detail.querySelector('.dd-pct').textContent = `${active.dataset.pct} מסך ההוצאות`;
+    }
+}
+
+function sliceTarget(el) {
+    const item = el.closest && el.closest('.split-grid [data-slice]');
+    return item ? { grid: item.closest('.split-grid'), index: item.dataset.slice } : null;
+}
+
+// Mouse hover and keyboard focus preview a slice; leaving clears it
+['mouseover', 'focusin'].forEach(type => document.addEventListener(type, e => {
+    const t = sliceTarget(e.target);
+    if (t) setDonutSlice(t.grid, t.index);
+}));
+['mouseout', 'focusout'].forEach(type => document.addEventListener(type, e => {
+    const t = sliceTarget(e.target);
+    if (!t || (e.relatedTarget && sliceTarget(e.relatedTarget))) return;
+    setDonutSlice(t.grid, null);
+}));
+
+// Tap (phones): select a slice, tap it again or anywhere else to clear
+document.addEventListener('click', e => {
+    const t = sliceTarget(e.target);
+    document.querySelectorAll('.split-grid').forEach(grid => {
+        if (t && grid === t.grid) {
+            const same = grid.querySelector('.donut').dataset.active === t.index;
+            setDonutSlice(grid, same && e.pointerType === 'touch' ? null : t.index);
+        } else if (grid.querySelector('.donut.has-active')) {
+            setDonutSlice(grid, null);
+        }
+    });
+});
 
 function methodHtml(data, idp) {
     return `
