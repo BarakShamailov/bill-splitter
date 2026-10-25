@@ -267,6 +267,7 @@ function submitPerson() {
     nameInput.focus();
     save();
     renderPersons();
+    showToast(group ? `${name} התווסף/ה לקבוצה "${group}"` : `${name} התווסף/ה לרשימה`, 'success');
 }
 
 function startEdit(name) {
